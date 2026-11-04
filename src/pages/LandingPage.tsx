@@ -32,16 +32,25 @@ export const LandingPage: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
-  const [emailInput, setEmailInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
-  const [nameInput, setNameInput] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [emailInput, setEmailInput] = useState('devanathan@echopulse.ai');
+  const [passwordInput, setPasswordInput] = useState('password123');
+  const [nameInput, setNameInput] = useState('Devanathan S.');
 
   // Sample hero preview state
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [previewProgress, setPreviewProgress] = useState(0);
 
   const heroWaveform = [30, 45, 80, 60, 95, 40, 75, 85, 30, 50, 90, 70, 45, 65, 80, 40, 95, 60, 50, 70, 85, 35, 60, 40];
+
+  const handleDemoLogin = async () => {
+    try {
+      await loginWithApi('devanathan@echopulse.ai', 'password123');
+    } catch {
+      login();
+    }
+    navigate('/chat');
+  };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,17 +64,17 @@ export const LandingPage: React.FC = () => {
           password: passwordInput,
         });
       } else {
-        await loginWithApi(emailInput, passwordInput);
+        await loginWithApi(emailInput || 'devanathan@echopulse.ai', passwordInput || 'password123');
       }
     } catch (err) {
-      console.log('Auth API notice, proceeding in session mode:', err);
+      console.log('Auth notice, proceeding in demo session mode:', err);
       login();
     }
     setAuthModalOpen(false);
     navigate('/chat');
   };
 
-  const openAuth = (mode: 'login' | 'signup') => {
+  const openAuth = (mode: 'login' | 'signup' = 'login') => {
     setAuthMode(mode);
     setAuthModalOpen(true);
   };
@@ -118,16 +127,11 @@ export const LandingPage: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => openAuth('login')}
-              className="text-xs sm:text-sm font-medium text-primary-text hover:text-accent px-3 py-1.5 transition-colors"
+              onClick={handleDemoLogin}
+              className="px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
             >
-              Log in
-            </button>
-            <button
-              onClick={() => openAuth('signup')}
-              className="px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs sm:text-sm font-medium shadow-sm transition-all active:scale-95"
-            >
-              Sign up free
+              <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Demo Login</span>
             </button>
           </div>
         </div>
@@ -152,17 +156,18 @@ export const LandingPage: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-16">
             <button
-              onClick={() => openAuth('signup')}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-medium text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group active:scale-95"
+              onClick={handleDemoLogin}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group active:scale-95"
             >
-              <span>Get Started</span>
+              <Sparkles className="w-4 h-4 text-emerald-300" />
+              <span>1-Click Demo Login</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={() => openAuth('login')}
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-surface hover:bg-surface-subtle text-primary-text font-medium text-sm border border-border shadow-subtle transition-all"
             >
-              Sign In to Your Workspace
+              Custom Demo Credentials
             </button>
           </div>
 
@@ -462,10 +467,11 @@ export const LandingPage: React.FC = () => {
             Join the hackathon demo live. Connect across languages without missing a beat or a sentiment.
           </p>
           <button
-            onClick={() => openAuth('signup')}
-            className="px-8 py-3.5 bg-accent hover:bg-accent-hover text-white font-medium text-sm rounded-xl shadow-md transition-all active:scale-95"
+            onClick={handleDemoLogin}
+            className="px-8 py-3.5 bg-accent hover:bg-accent-hover text-white font-medium text-sm rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mx-auto"
           >
-            Launch EchoPulse Now
+            <Sparkles className="w-4 h-4 text-emerald-300" />
+            <span>Launch 1-Click Demo Login</span>
           </button>
         </div>
       </section>
@@ -496,79 +502,106 @@ export const LandingPage: React.FC = () => {
         </div>
       </footer>
 
-      {/* Auth Modal for Login and Signup */}
+      {/* Auth Modal for Demo Login */}
       <Modal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
-        title={authMode === 'signup' ? 'Create your EchoPulse Account' : 'Welcome back to EchoPulse'}
+        title="EchoPulse Demo Login"
         maxWidth="sm"
       >
-        <form onSubmit={handleAuthSubmit} className="space-y-4">
-          {authMode === 'signup' && (
+        <div className="space-y-4">
+          <div className="p-3 bg-accent-subtle/50 rounded-xl border border-accent/20 text-center">
+            <p className="text-xs text-muted-text mb-2.5 font-medium">
+              Instant judge & evaluator access with pre-configured audio credentials
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthModalOpen(false);
+                handleDemoLogin();
+              }}
+              className="w-full py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+              <span>🚀 1-Click Instant Demo Login</span>
+            </button>
+          </div>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-border"></div>
+            <span className="flex-shrink mx-3 text-[11px] text-muted-text uppercase tracking-wider font-semibold">
+              or enter demo credentials
+            </span>
+            <div className="flex-grow border-t border-border"></div>
+          </div>
+
+          <form onSubmit={handleAuthSubmit} className="space-y-3.5">
+            {authMode === 'signup' && (
+              <div>
+                <label className="text-xs font-semibold text-primary-text block mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={nameInput}
+                  onChange={e => setNameInput(e.target.value)}
+                  placeholder="Devanathan S."
+                  className="w-full px-3 py-2 bg-surface-subtle border border-border rounded-xl text-xs text-primary-text focus:outline-none focus:border-accent"
+                />
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-semibold text-primary-text block mb-1">
-                Full Name
+                Email Address
               </label>
               <input
-                type="text"
+                type="email"
                 required
-                value={nameInput}
-                onChange={e => setNameInput(e.target.value)}
-                placeholder="Devanathan S."
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                placeholder="devanathan@echopulse.ai"
                 className="w-full px-3 py-2 bg-surface-subtle border border-border rounded-xl text-xs text-primary-text focus:outline-none focus:border-accent"
               />
             </div>
-          )}
 
-          <div>
-            <label className="text-xs font-semibold text-primary-text block mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              required
-              value={emailInput}
-              onChange={e => setEmailInput(e.target.value)}
-              placeholder="you@echopulse.ai"
-              className="w-full px-3 py-2 bg-surface-subtle border border-border rounded-xl text-xs text-primary-text focus:outline-none focus:border-accent"
-            />
-          </div>
+            <div>
+              <label className="text-xs font-semibold text-primary-text block mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={passwordInput}
+                onChange={e => setPasswordInput(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full px-3 py-2 bg-surface-subtle border border-border rounded-xl text-xs text-primary-text focus:outline-none focus:border-accent"
+              />
+            </div>
 
-          <div>
-            <label className="text-xs font-semibold text-primary-text block mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={passwordInput}
-              onChange={e => setPasswordInput(e.target.value)}
-              placeholder="••••••••••••"
-              className="w-full px-3 py-2 bg-surface-subtle border border-border rounded-xl text-xs text-primary-text focus:outline-none focus:border-accent"
-            />
-          </div>
+            <div className="pt-1">
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-surface hover:bg-surface-subtle border border-border text-primary-text text-xs font-semibold shadow-sm transition-all"
+              >
+                {authMode === 'signup' ? 'Create Demo Account' : 'Demo Login'}
+              </button>
+            </div>
 
-          <div className="pt-2">
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-sm transition-all"
-            >
-              {authMode === 'signup' ? 'Create Account & Enter' : 'Sign In'}
-            </button>
-          </div>
-
-          <div className="text-center pt-2">
-            <button
-              type="button"
-              onClick={() => setAuthMode(authMode === 'signup' ? 'login' : 'signup')}
-              className="text-xs text-muted-text hover:text-accent"
-            >
-              {authMode === 'signup'
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"}
-            </button>
-          </div>
-        </form>
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => setAuthMode(authMode === 'signup' ? 'login' : 'signup')}
+                className="text-xs text-muted-text hover:text-accent"
+              >
+                {authMode === 'signup'
+                  ? 'Switch to standard Demo Login'
+                  : 'Want a new custom demo identity? Create demo profile'}
+              </button>
+            </div>
+          </form>
+        </div>
       </Modal>
     </div>
   );
