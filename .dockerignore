@@ -8,5 +8,4 @@ backend/.env
 echopulse.db
 *.db
 uploads/*
-dist
 .pytest_cache

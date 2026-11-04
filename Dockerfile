@@ -1,11 +1,3 @@
-# Multi-stage build: React Frontend + FastAPI Backend for Cloud Run
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
 FROM python:3.11-slim
 WORKDIR /app
 
@@ -16,13 +8,13 @@ ENV PYTHONUNBUFFERED=1 \
 COPY backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy backend application
+# Copy backend source
 COPY backend/ ./backend/
 
-# Copy built frontend from previous stage
-COPY --from=frontend-builder /app/dist ./dist
+# Copy pre-built frontend assets
+COPY dist/ ./dist/
 
-# Create uploads directory
+# Ensure uploads folder exists
 RUN mkdir -p /app/backend/uploads
 
 EXPOSE 8080
