@@ -61,15 +61,6 @@ app.include_router(conversations.router, prefix=settings.API_V1_STR)
 app.include_router(messages.router, prefix=settings.API_V1_STR)
 app.include_router(translation.router, prefix=settings.API_V1_STR)
 
-@app.get("/")
-def root():
-    return {
-        "app": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "status": "online",
-        "docs": "/docs",
-    }
-
 @app.get("/api/health")
 def health_check():
     return {
@@ -80,3 +71,18 @@ def health_check():
         "database_configured": bool(settings.DATABASE_URL),
         "tts_provider": settings.TTS_PROVIDER,
     }
+
+# Mount static frontend if built (enables single-URL fullstack deployment)
+from fastapi.staticfiles import StaticFiles
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dist"))
+if os.path.isdir(frontend_dist) and os.path.isfile(os.path.join(frontend_dist, "index.html")):
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+else:
+    @app.get("/")
+    def root():
+        return {
+            "app": settings.PROJECT_NAME,
+            "version": settings.VERSION,
+            "status": "online",
+            "docs": "/docs",
+        }

@@ -1,0 +1,12 @@
+node_modules
+__pycache__
+*.pyc
+.git
+.github
+.env
+backend/.env
+echopulse.db
+*.db
+uploads/*
+dist
+.pytest_cache
