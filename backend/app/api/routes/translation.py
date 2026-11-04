@@ -92,3 +92,4 @@ def get_translation_status(
         "translated_text": msg.translated_text,
         "has_translated_audio": bool(msg.translated_audio_path),
     }
+

@@ -84,3 +84,4 @@ async def test_translation_endpoints():
         st_data = status_res.json()
         assert "status" in st_data
         assert "detected_source_language" in st_data
+

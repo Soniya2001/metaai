@@ -69,3 +69,4 @@ class MetaTranscriptionService:
         }
 
 meta_transcriber = MetaTranscriptionService()
+
