@@ -182,6 +182,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
           return updated;
         });
+
+        // Also sync snippet in conversation list
+        setConversations(prev =>
+          prev.map(c => {
+            if (c.lastMessage?.type === 'voice' && c.lastMessage.voice) {
+              const bankTranslation = translationBank[c.lastMessage.voice.id]?.[currentLang];
+              if (bankTranslation) {
+                return {
+                  ...c,
+                  lastMessage: {
+                    ...c.lastMessage,
+                    voice: {
+                      ...c.lastMessage.voice,
+                      translatedLanguage: currentLang,
+                      translatedTranscript: bankTranslation,
+                      translationStatus: 'translated',
+                    },
+                  },
+                };
+              }
+            }
+            return c;
+          })
+        );
       }, 700);
 
       return () => clearTimeout(timer);
