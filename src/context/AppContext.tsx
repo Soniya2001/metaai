@@ -171,8 +171,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const updated = { ...prevMessages };
       for (const convId in updated) {
         updated[convId] = updated[convId].map(msg => {
-          if (msg.type === 'voice' && msg.voice) {
-            // Update translation for recipient language
+          // Only incoming messages from contacts speaking a different language need translation
+          if (
+            msg.type === 'voice' &&
+            msg.voice &&
+            msg.senderType === 'contact' &&
+            msg.voice.sourceLanguage.trim().toLowerCase() !== currentLang.trim().toLowerCase()
+          ) {
             if (msg.voice.translatedLanguage !== currentLang) {
               return {
                 ...msg,
@@ -197,7 +202,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const updated = { ...prev };
           for (const convId in updated) {
             updated[convId] = updated[convId].map(msg => {
-              if (msg.type === 'voice' && msg.voice) {
+              if (
+                msg.type === 'voice' &&
+                msg.voice &&
+                msg.senderType === 'contact' &&
+                msg.voice.sourceLanguage.trim().toLowerCase() !== currentLang.trim().toLowerCase()
+              ) {
                 // Look up in translation bank or fallback
                 const bankTranslation = translationBank[msg.voice.id]?.[currentLang];
                 const newTrans = bankTranslation || msg.voice.translatedTranscript;
@@ -218,10 +228,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return updated;
         });
 
-        // Also sync snippet in conversation list
+        // Also sync snippet in conversation list (for contact incoming voice notes)
         setConversations(prev =>
           prev.map(c => {
-            if (c.lastMessage?.type === 'voice' && c.lastMessage.voice) {
+            if (
+              c.lastMessage?.type === 'voice' &&
+              c.lastMessage.voice &&
+              c.lastMessage.senderType === 'contact' &&
+              c.lastMessage.voice.sourceLanguage.trim().toLowerCase() !== currentLang.trim().toLowerCase()
+            ) {
               const bankTranslation = translationBank[c.lastMessage.voice.id]?.[currentLang];
               if (bankTranslation) {
                 return {
@@ -321,9 +336,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         waveform: generateWaveform(32),
         sourceLanguage: sourceLang,
         originalTranscript: transcript,
-        translationStatus: 'translating',
-        translatedLanguage: targetLang,
-        translatedTranscript: 'Translating audio...',
+        translationStatus: 'translated',
+        translatedLanguage: sourceLang,
+        translatedTranscript: transcript,
       },
       status: 'sent',
     };
@@ -343,27 +358,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           console.log('Voice audio upload notice (persisted in local state):', err);
         });
     }
-
-    // Simulate async translation
-    setTimeout(async () => {
-      const res = await simulateTranslation(voiceId, targetLang, transcript);
-      setAllMessages(prev => ({
-        ...prev,
-        [activeConversationId]: (prev[activeConversationId] || []).map(m => {
-          if (m.id === newVoiceMsg.id && m.voice) {
-            return {
-              ...m,
-              voice: {
-                ...m.voice,
-                translationStatus: res.success ? 'translated' : 'failed',
-                translatedTranscript: res.translatedText,
-              },
-            };
-          }
-          return m;
-        }),
-      }));
-    }, 1200);
 
     // Update conversation snippet
     setConversations(prev =>

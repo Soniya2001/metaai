@@ -98,13 +98,16 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
     );
   };
 
-  const isTranslating = voice.translationStatus === 'translating';
-  const isFailed = voice.translationStatus === 'failed';
-  const isTranslated = voice.translationStatus === 'translated';
+  // Translation is ONLY needed for incoming messages from contacts speaking a DIFFERENT language
+  const isDifferentLanguage =
+    Boolean(voice.sourceLanguage && settings.preferredLanguage) &&
+    voice.sourceLanguage.trim().toLowerCase() !== settings.preferredLanguage.trim().toLowerCase();
 
-  // Check if translation is enabled and allowed by settings
-  const shouldShowTranslationSection =
-    settings.autoVoiceTranslation || isTranslated || isTranslating;
+  const needsTranslation = !isSender && isDifferentLanguage;
+
+  const isTranslating = needsTranslation && voice.translationStatus === 'translating';
+  const isFailed = needsTranslation && voice.translationStatus === 'failed';
+  const isTranslated = needsTranslation && voice.translationStatus === 'translated';
 
   return (
     <div className="flex flex-col gap-2.5 w-full min-w-[280px] max-w-[420px] select-none">
@@ -120,8 +123,8 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
           {/* Header Row: Source Language & Duration */}
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="flex items-center gap-1.5 font-medium text-primary-text">
-              <span className="w-2 h-2 rounded-full bg-accent"></span>
-              {voice.sourceLanguage} Audio
+              <span className={`w-2 h-2 rounded-full ${isSender ? 'bg-accent' : 'bg-emerald-500'}`}></span>
+              {isSender ? 'Your Voice Note' : `${voice.sourceLanguage} Audio`}
             </span>
             <span className="text-muted-text font-mono text-[11px]">
               {activePlayer === 'original'
@@ -141,7 +144,7 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
                   ? 'bg-accent text-white hover:bg-accent-hover'
                   : 'bg-surface-subtle hover:bg-border text-primary-text'
               }`}
-              title={activePlayer === 'original' ? 'Pause' : 'Play Original Audio'}
+              title={activePlayer === 'original' ? 'Pause' : 'Play Audio'}
             >
               {activePlayer === 'original' ? (
                 <Pause className="w-4 h-4 fill-current" />
@@ -166,53 +169,55 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
         </div>
       )}
 
-      {/* 2. Translation Status & Control Bar */}
-      <div className="flex items-center justify-between px-1 text-xs">
-        <div className="flex items-center gap-1.5">
-          {isTranslating ? (
-            <span className="inline-flex items-center gap-1.5 text-accent font-medium">
-              <Sparkles className="w-3.5 h-3.5 animate-spin" />
-              Translating voice message...
-            </span>
-          ) : isFailed ? (
-            <span className="inline-flex items-center gap-1 text-rose-600 font-medium">
-              <AlertCircle className="w-3.5 h-3.5" />
-              Translation failed
-            </span>
-          ) : isTranslated ? (
-            <span className="inline-flex items-center gap-1 text-muted-text font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-              Translated to{' '}
-              <strong className="text-primary-text font-semibold">
-                {voice.translatedLanguage}
-              </strong>
-            </span>
-          ) : (
-            <span className="text-muted-text">Original audio available</span>
-          )}
-        </div>
-
-        {/* Action: Manual translate or retry */}
-        {(!settings.autoVoiceTranslation && !isTranslated && !isTranslating) || isFailed ? (
-          <button
-            onClick={() => triggerTranslateMessage(messageId)}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-accent bg-accent-subtle hover:bg-accent-light/60 rounded-lg transition-colors border border-accent/20"
-          >
-            {isFailed ? (
-              <>
-                <RotateCcw className="w-3 h-3" /> Retry
-              </>
+      {/* 2. Translation Status & Control Bar (Only for incoming messages in a different language) */}
+      {needsTranslation && (
+        <div className="flex items-center justify-between px-1 text-xs">
+          <div className="flex items-center gap-1.5">
+            {isTranslating ? (
+              <span className="inline-flex items-center gap-1.5 text-accent font-medium">
+                <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                Translating voice message...
+              </span>
+            ) : isFailed ? (
+              <span className="inline-flex items-center gap-1 text-rose-600 font-medium">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Translation failed
+              </span>
+            ) : isTranslated ? (
+              <span className="inline-flex items-center gap-1 text-muted-text font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
+                Translated to{' '}
+                <strong className="text-primary-text font-semibold">
+                  {voice.translatedLanguage || settings.preferredLanguage}
+                </strong>
+              </span>
             ) : (
-              <>
-                <Languages className="w-3 h-3" /> Translate
-              </>
+              <span className="text-muted-text">Original audio available</span>
             )}
-          </button>
-        ) : null}
-      </div>
+          </div>
 
-      {/* 3. Translated Voice Playback (if enabled in settings and translated) */}
-      {settings.enableTranslatedAudio && isTranslated && (
+          {/* Action: Manual translate or retry */}
+          {(!settings.autoVoiceTranslation && !isTranslated && !isTranslating) || isFailed ? (
+            <button
+              onClick={() => triggerTranslateMessage(messageId)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-accent bg-accent-subtle hover:bg-accent-light/60 rounded-lg transition-colors border border-accent/20"
+            >
+              {isFailed ? (
+                <>
+                  <RotateCcw className="w-3 h-3" /> Retry
+                </>
+              ) : (
+                <>
+                  <Languages className="w-3 h-3" /> Translate
+                </>
+              )}
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      {/* 3. Translated Voice Playback (Only for incoming messages in a different language) */}
+      {needsTranslation && settings.enableTranslatedAudio && isTranslated && (
         <div
           className={`flex items-center justify-between p-2.5 rounded-xl border border-accent/25 bg-accent-subtle/50 transition-colors ${
             activePlayer === 'translated' ? 'ring-1 ring-accent' : ''
@@ -237,7 +242,7 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-semibold text-primary-text flex items-center gap-1.5">
                 <Volume2 className="w-3.5 h-3.5 text-accent" />
-                Listen in {voice.translatedLanguage}
+                Listen in {voice.translatedLanguage || settings.preferredLanguage}
               </span>
               <span className="text-[11px] text-muted-text">AI Voice Playback</span>
             </div>
@@ -252,25 +257,29 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
       )}
 
       {/* 4. Transcript Card (Expandable & Toggleable) */}
-      {settings.showTranslatedTranscript && isTranslated && (
+      {settings.showTranslatedTranscript && (voice.originalTranscript || (needsTranslation && voice.translatedTranscript)) && (
         <div className="bg-surface rounded-xl border border-border p-3 shadow-subtle">
           <div className="flex items-center justify-between pb-2 border-b border-border/60">
             <div className="flex items-center gap-1.5 text-xs font-medium text-primary-text">
               <FileText className="w-3.5 h-3.5 text-accent" />
               <span>
-                {showOriginalTranscript
+                {!needsTranslation
+                  ? 'Transcript'
+                  : showOriginalTranscript
                   ? `Original (${voice.sourceLanguage})`
-                  : `Transcript (${voice.translatedLanguage})`}
+                  : `Transcript (${voice.translatedLanguage || settings.preferredLanguage})`}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowOriginalTranscript(prev => !prev)}
-                className="text-[11px] text-accent hover:underline font-medium"
-              >
-                {showOriginalTranscript ? 'Show translation' : 'Show original'}
-              </button>
+              {needsTranslation && isTranslated && (
+                <button
+                  onClick={() => setShowOriginalTranscript(prev => !prev)}
+                  className="text-[11px] text-accent hover:underline font-medium"
+                >
+                  {showOriginalTranscript ? 'Show translation' : 'Show original'}
+                </button>
+              )}
               <button
                 onClick={() => setIsTranscriptExpanded(prev => !prev)}
                 className="text-muted-text hover:text-primary-text p-0.5"
@@ -287,7 +296,7 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
 
           {isTranscriptExpanded && (
             <p className="mt-2.5 text-sm text-primary-text leading-relaxed tracking-normal font-sans">
-              {showOriginalTranscript
+              {!needsTranslation || showOriginalTranscript
                 ? voice.originalTranscript
                 : voice.translatedTranscript}
             </p>
