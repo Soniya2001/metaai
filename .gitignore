@@ -16,6 +16,11 @@ uploads/*
 !uploads/.gitkeep
 backend/uploads/*
 !backend/uploads/.gitkeep
+*.wav
+*.mp3
+*.webm
+*.ogg
+*.m4a
 
 # Python artifacts
 __pycache__/
