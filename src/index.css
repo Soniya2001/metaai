@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: #F8F8F5;
+    --color-surface: #FFFFFF;
+    --color-primary-text: #202421;
+    --color-muted-text: #777D79;
+    --color-border: #E7E9E6;
+    --color-accent: #16877A;
+    --color-accent-light: #D7E8E2;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-primary-text);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom subtle scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D0D4CD;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #B4B9B1;
+  }
+}
+
+/* Audio waveform animation when active */
+@keyframes audioPulse {
+  0% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.4); }
+}
+
+.waveform-active {
+  animation: audioPulse 0.9s ease-in-out infinite;
+}
+
