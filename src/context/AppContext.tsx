@@ -27,6 +27,7 @@ interface AppContextType {
   filteredConversations: Conversation[];
   isAuthenticated: boolean;
   setActiveConversationId: (id: string) => void;
+  markConversationAsRead: (id: string) => void;
   sendTextMessage: (text: string) => void;
   sendVoiceMessage: (duration: number, transcript?: string, sourceLang?: SupportedLanguage, audioBlob?: Blob) => void;
   triggerTranslateMessage: (messageId: string) => Promise<void>;
@@ -90,6 +91,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   });
   const [activeCall, setActiveCall] = useState<{ active: boolean; type: 'voice' | 'video'; contactName?: string } | null>(null);
+
+  // Automatically clear unread count for the active conversation
+  useEffect(() => {
+    if (!activeConversationId) return;
+    setConversations(prev =>
+      prev.map(c =>
+        c.id === activeConversationId && c.unreadCount > 0
+          ? { ...c, unreadCount: 0 }
+          : c
+      )
+    );
+  }, [activeConversationId]);
+
+  const markConversationAsRead = (id: string) => {
+    setConversations(prev =>
+      prev.map(c => (c.id === id ? { ...c, unreadCount: 0 } : c))
+    );
+  };
+
+  const handleSetActiveConversation = (id: string) => {
+    setActiveConversationId(id);
+    markConversationAsRead(id);
+  };
 
   // Sync user preferred language with settings
   useEffect(() => {
@@ -494,7 +518,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSearchQuery,
         filteredConversations,
         isAuthenticated,
-        setActiveConversationId,
+        setActiveConversationId: handleSetActiveConversation,
+        markConversationAsRead,
         sendTextMessage,
         sendVoiceMessage,
         triggerTranslateMessage,

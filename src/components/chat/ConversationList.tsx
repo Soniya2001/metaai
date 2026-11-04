@@ -13,12 +13,14 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     filteredConversations,
     activeConversationId,
     setActiveConversationId,
+    markConversationAsRead,
     searchQuery,
     setSearchQuery,
   } = useApp();
 
   const handleSelect = (id: string) => {
     setActiveConversationId(id);
+    markConversationAsRead(id);
     if (onSelectConversation) {
       onSelectConversation(id);
     }
@@ -90,10 +92,10 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                 {/* Contact Info & Last Message Snippet */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-sm text-primary-text truncate">
+                    <span className={`text-sm truncate ${unreadCount > 0 && !isActive ? 'font-bold text-primary-text' : 'font-semibold text-primary-text'}`}>
                       {contact.name}
                     </span>
-                    <span className="text-[11px] text-muted-text whitespace-nowrap ml-2">
+                    <span className={`text-[11px] whitespace-nowrap ml-2 ${unreadCount > 0 && !isActive ? 'text-accent font-semibold' : 'text-muted-text'}`}>
                       {lastMessage.timestamp}
                     </span>
                   </div>
