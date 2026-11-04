@@ -22,7 +22,14 @@ import { useApp } from '../context/AppContext';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loginWithApi, registerWithApi } = useApp();
+  const { isAuthenticated, login, loginWithApi, registerWithApi } = useApp();
+
+  // If already authenticated, redirect straight to /chat without flashing the landing page
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/chat', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');

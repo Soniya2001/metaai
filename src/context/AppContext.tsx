@@ -76,7 +76,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeConversationId, setActiveConversationId] = useState<string>('conv-ananya');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return !!localStorage.getItem('echopulse_token') || true;
+    const authStatus = localStorage.getItem('echopulse_authenticated');
+    const token = localStorage.getItem('echopulse_token');
+    // If user has explicitly clicked Sign Out, keep them signed out
+    if (authStatus === 'false') {
+      return false;
+    }
+    // If authenticated flag is true or valid token exists, stay signed in
+    if (authStatus === 'true' || token) {
+      return true;
+    }
+    // Default session: signed in so user directly accesses the chat app
+    return true;
   });
   const [activeCall, setActiveCall] = useState<{ active: boolean; type: 'voice' | 'video'; contactName?: string } | null>(null);
 
@@ -411,6 +422,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const res = await api.login(username_or_email, password);
     if (res.access_token) {
       localStorage.setItem('echopulse_token', res.access_token);
+      localStorage.setItem('echopulse_authenticated', 'true');
       setIsAuthenticated(true);
       const me = await api.getMe();
       if (me) {
@@ -430,6 +442,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const res = await api.register(payload);
     if (res.access_token) {
       localStorage.setItem('echopulse_token', res.access_token);
+      localStorage.setItem('echopulse_authenticated', 'true');
       setIsAuthenticated(true);
       const me = await api.getMe();
       if (me) {
@@ -445,8 +458,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const login = () => setIsAuthenticated(true);
+  const login = () => {
+    localStorage.setItem('echopulse_authenticated', 'true');
+    setIsAuthenticated(true);
+  };
+
   const logout = () => {
+    localStorage.setItem('echopulse_authenticated', 'false');
     localStorage.removeItem('echopulse_token');
     setIsAuthenticated(false);
   };

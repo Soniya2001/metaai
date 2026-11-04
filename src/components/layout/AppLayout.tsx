@@ -15,7 +15,7 @@ export const AppLayout: React.FC = () => {
         <div className="flex flex-col items-center gap-6">
           {/* Logo Mark */}
           <NavLink
-            to="/"
+            to="/chat"
             className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center shadow-subtle hover:bg-accent-hover transition-colors"
             title="EchoPulse Home"
           >

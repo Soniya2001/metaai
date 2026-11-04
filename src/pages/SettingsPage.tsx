@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { LanguageSelector } from '../components/settings/LanguageSelector';
 import { ToggleSwitch } from '../components/settings/ToggleSwitch';
@@ -10,10 +11,12 @@ import {
   Cpu,
   CheckCircle2,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, updateSettings } = useApp();
+  const navigate = useNavigate();
+  const { settings, updateSettings, user, logout } = useApp();
   const [activeSection, setActiveSection] = useState<'language' | 'translation' | 'notifications' | 'privacy'>('language');
   const [saveToast, setSaveToast] = useState(false);
 
@@ -230,6 +233,25 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Account & Session Sign Out */}
+        <div className="bg-surface rounded-2xl border border-border p-5 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+          <div className="text-xs">
+            <span className="font-semibold text-primary-text block">Active Session</span>
+            <span className="text-muted-text">Signed in as {user.name} ({user.email})</span>
+          </div>
+
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </div>
     </div>
   );
